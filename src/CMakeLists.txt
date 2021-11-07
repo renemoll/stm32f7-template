@@ -1,14 +1,4 @@
 
-add_compile_options(
-	$<$<CONFIG:DEBUG>:-g3>
-	$<$<CONFIG:DEBUG>:-Og>
-	$<$<CONFIG:RELEASE>:-O3>
-)
-
-add_compile_definitions(
-	$<$<CONFIG:DEBUG>:DEBUG>
-)
-
 add_library(recorder_lib
 	demo.cpp
 )

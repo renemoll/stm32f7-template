@@ -30,3 +30,4 @@ Note: this system uses Docker images to build the source code.
 
 * import demo application
 * selectivly git clone (specific folders...)
+* split toolchain file into stm32f7 family and specific MCU

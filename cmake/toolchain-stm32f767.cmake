@@ -18,30 +18,36 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # Compiler configuration
-set(ARM_API -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb -mabi=aapcs)
+set(ARM_API
+	-mcpu=cortex-m7					# ARM Cortex-M7 CPU.
+	-mfloat-abi=hard				# FPU ABI: hard(ware).
+	-mfpu=fpv5-d16					# FPU use FPv5 instructions.
+	-mthumb							# Generate Thumb instructions.
+	-mabi=aapcs						# Use 'ARM Architecture Procedure Calling Standard' ABI.
+)
+
 add_compile_options(
 	${ARM_API}
-	--specs=nano.specs				# newlib
-	# Sectioning
-	-ffunction-sections
-	-fdata-sections
-	$<$<CONFIG:DEBUG>:-gdwarf>
+	# --specs=nano.specs			# newlib nano.
+	-ffunction-sections				# Place each function into it's own section.
+	-fdata-sections					# Place each data element into it's own section.
+	$<$<CONFIG:DEBUG>:-gdwarf>		# Generate debug information in DWARF format.
 )
 
 add_link_options(
 	${ARM_API}
 	# -nostartfiles
-	--specs=nano.specs
-	--specs=nosys.specs
-	LINKER:--gc-sections
-	LINKER:--build-id
-	LINKER:--cref
+	# --specs=nano.specs
+	--specs=nosys.specs				# Use stubs for C syscalls.
+	# -–specs rdimon.specs			# Enable semihosting.
+	LINKER:--gc-sections			# Garbage collection using the unique function and data sections.
+	LINKER:--build-id=uuid			# Generate a unique identiefier for each build and store it in a specific section (.note.gnu.build-id).
+	LINKER:--cref					# Generate a cross reference table in the MAP file, listing symbols and their source file(s).
 )
-# linker:-–specs rdimon.specs -> semihosting (do I really want this?)
 
 add_compile_definitions(
-	STM32F767xx
-	USE_FULL_LL_DRIVER
+	STM32F767xx						# Define the specific MCU.
+	USE_FULL_LL_DRIVER				# Enable ST's Low Level API.
 )
 
 function(bob_firmware_image target)

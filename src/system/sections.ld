@@ -1,5 +1,7 @@
 
 ENTRY(Reset_Handler)
+OUTPUT_ARCH(arm)
+OUTPUT_FORMAT(elf32-littlearm)
 
 _estack = ORIGIN(DTCMRAM) + LENGTH(DTCMRAM);
 
@@ -112,8 +114,8 @@ SECTIONS
 	} >FLASH
 
 	/*
-	 * Initialized variables, which are not read-only, are stored in RAM
-	 * and copied into FLASH as part of the startup code.
+	 * Initialized variables, which are not read-only, are stored in FLASH
+	 * and copied into RAM as part of the startup code.
 	 */
 	_sidata = LOADADDR(.data);
 	.data : ALIGN(4)
@@ -137,8 +139,8 @@ SECTIONS
 	} > FLASH
 
 	/*
-	 * Uninitialized data, again not read-only, is also stored in RAM
-	 * and copied into FLASH with a default value which is defined in
+	 * Uninitialized data, again not read-only, is also stored in FLASH
+	 * and copied into RAM with a default value which is defined in
 	 * the startup code.
 	 */
 	.bss (NOLOAD) : ALIGN(4)
