@@ -8,7 +8,7 @@ function(bob_configure_options target)
 		target_compile_options(${target}
 			PRIVATE
 				$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${USE_RTTI}>>:-frtti>
-				$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${USE_RTTI}>>:-fno-rtti>
+				$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<NOT:$<BOOL:${USE_RTTI}>>>:-fno-rtti>
 		)
 
 		target_compile_options(${target}
