@@ -1,0 +1,10 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define DATA_RECORDER_VERSION_MAJOR @nucleo_data_recorder_VERSION_MAJOR@
+#define DATA_RECORDER_VERSION_MINOR @nucleo_data_recorder_VERSION_MINOR@
+
+#cmakedefine USE_EXCEPTIONS
+#cmakedefine USE_RTTI
+
+#endif

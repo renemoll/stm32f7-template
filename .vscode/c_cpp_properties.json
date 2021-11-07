@@ -1,0 +1,21 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "intelliSenseMode": "clang-x64",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/build/linux64-debug",
+                "${workspaceFolder}/build/linux64-debug/_deps/stm32cubef7-src/Drivers/CMSIS/Core/Include",
+                "${workspaceFolder}/build/linux64-debug/_deps/stm32cubef7-src/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
+                "${workspaceFolder}/build/linux64-debug/_deps/stm32cubef7-src/Drivers/STM32F7xx_HAL_Driver/Inc"
+            ],
+            "defines": [
+                "STM32F767xx",
+                "USE_FULL_LL_DRIVER"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ]
+}
