@@ -1,24 +1,22 @@
+![Host workflow](https://github.com/renemoll/stm32f7-template/actions/workflows/build-host.yml/badge.svg)
+![Target workflow](https://github.com/renemoll/stm32f7-template/actions/workflows/build-target.yml/badge.svg)
+
 # STM32F7 template
 
 
 # How to build
 
-> python build.py
+All build options are available through the provided build script: `build.py`. 
 
-Note: this system uses Docker images to build the source code.
+The build system supports using containers to provide the required toolchain, current support:
+* Host build using Clang: `python build.py --container host`
+* Target build using `arm-gcc-none-eabi`: `python build.py --container stm32`
 
-## Host build
-
-## Target build
-
-> python .\build.py --container stm32
-
-
-
+> To use your local toolchain, simply remove the `--container` flag.
 
 # Wishlist
 
-* Have a look at [https://interrupt.memfault.com/blog/static-analysis-with-codechecker](Firmware Static Analysis with CodeChecker).
+* Have a look at [Firmware Static Analysis with CodeChecker](https://interrupt.memfault.com/blog/static-analysis-with-codechecker).
 * Have a look at cppcheck.
 * Checkout [puncover](https://github.com/HBehrens/puncover) for code size analysis.
 * Checkout [clang-blueprint](https://github.com/johnthagen/clang-blueprint)
@@ -26,8 +24,7 @@ Note: this system uses Docker images to build the source code.
 * Valgrind
 * code coverage
 
-# todo
+# Todo
 
 * import demo application
-* selectivly git clone (specific folders...)
 * split toolchain file into stm32f7 family and specific MCU
