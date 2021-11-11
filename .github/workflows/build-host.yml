@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
       - name: Call build.py
-        run: python .\build.py --container host
+        run: python build.py --container host
 
