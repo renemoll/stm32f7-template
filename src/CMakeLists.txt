@@ -11,16 +11,7 @@ target_include_directories(recorder_lib
 bob_configure_target(recorder_lib)
 
 if (CMAKE_CROSSCOMPILING)
-	add_library(stm32f7_system OBJECT
-		${stm32cubef7_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c
-		${stm32cubef7_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f767xx.s
-	)
-	target_include_directories(stm32f7_system
-		PUBLIC
-			${stm32cubef7_SOURCE_DIR}/Drivers/CMSIS/Core/Include
-			${stm32cubef7_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F7xx/Include
-			${stm32cubef7_SOURCE_DIR}/Drivers/STM32F7xx_HAL_Driver/Inc
-	)
+	add_subdirectory(system)
 
 	add_executable(recorder_app
 		${stm32cubef7_SOURCE_DIR}/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_gpio.c

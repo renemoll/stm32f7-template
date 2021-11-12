@@ -1,5 +1,5 @@
 
-ENTRY(Reset_Handler)
+ENTRY(ResetHandler)
 OUTPUT_ARCH(arm)
 OUTPUT_FORMAT(elf32-littlearm)
 
@@ -117,17 +117,18 @@ SECTIONS
 	 * Initialized variables, which are not read-only, are stored in FLASH
 	 * and copied into RAM as part of the startup code.
 	 */
-	_sidata = LOADADDR(.data);
 	.data : ALIGN(4)
 	{
         FILL(0xFF)
-		_sdata = .;        /* create a global symbol at data start */
+		__data_dest_start__ = .;
+
 		*(.data)           /* .data sections */
 		*(.data*)          /* .data* sections */
 
 		. = ALIGN(4);
-		_edata = .;        /* define a global symbol at data end */
+		__data_dest_end__ = .;
 	} >DTCMRAM AT> FLASH
+	__data_src__ = LOADADDR(.data);
 
 	/*
 	 * Embedded the GNU build ID into the resulting file.
@@ -145,15 +146,14 @@ SECTIONS
 	 */
 	.bss (NOLOAD) : ALIGN(4)
 	{
-		_sbss = .;         /* define a global symbol at bss start */
-		__bss_start__ = _sbss;
+		__bss_start__ = .;
+
 		*(.bss)
 		*(.bss*)
 		*(COMMON)
 
 		. = ALIGN(4);
-		_ebss = .;         /* define a global symbol at bss end */
-		__bss_end__ = _ebss;
+		__bss_end__ = .;
 	} >DTCMRAM
 
 	/*
