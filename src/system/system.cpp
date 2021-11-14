@@ -11,6 +11,15 @@ extern uint32_t __data_src__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
+using InitFunction = std::add_pointer<void()>::type;
+
+extern InitFunction __preinit_array_start__;
+extern InitFunction __preinit_array_end__;
+extern InitFunction __init_array_start__;
+extern InitFunction __init_array_end__;
+extern InitFunction __fini_array_start__;
+extern InitFunction __fini_array_end__;
+
 extern int main();
 
 namespace
@@ -24,6 +33,11 @@ void copy_data_section()
 void zero_bss_section()
 {
 	std::fill(&__bss_start__, &__bss_end__, 0u);
+}
+
+void table_call(InitFunction* start, InitFunction* end)
+{
+	std::for_each(start, end, [](const InitFunction f) { f(); });
 }
 }
 
@@ -62,7 +76,8 @@ void __prepare_environment()
 	copy_data_section();
 	zero_bss_section();
 
-	//!\todo constructors
+	table_call(&__preinit_array_start__, &__preinit_array_end__);
+	table_call(&__init_array_start__, &__init_array_end__);
 }
 
 void __start()
@@ -72,4 +87,6 @@ void __start()
 	 * Handle return from main
 	 */
 	main();
+
+	table_call(&__fini_array_start__, &__fini_array_end__);
 }

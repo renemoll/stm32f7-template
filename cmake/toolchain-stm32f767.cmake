@@ -36,7 +36,7 @@ add_compile_options(
 
 add_link_options(
 	${ARM_API}
-	# -nostartfiles
+	-nostartfiles
 	# --specs=nano.specs
 	--specs=nosys.specs				# Use stubs for C syscalls.
 	# -–specs rdimon.specs			# Enable semihosting.
