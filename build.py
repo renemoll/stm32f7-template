@@ -7,6 +7,7 @@ import pathlib
 class Target(enum.Enum):
 	LINUX = 1
 	STM32 = 2
+	GDB = 3
 
 	def __str__(self):
 		return self.name.lower()
@@ -46,6 +47,16 @@ def build_in_docker(target):
 			"-v", "{}:/work/".format(cwd),
 			"renemoll/builder_clang"]
 
+def build_gdb():
+	return [
+		"docker",
+		"run",
+		"--rm",
+		"-it",
+		"-v", "{}:/work/".format(cwd),
+		"renemoll/builder_arm_gcc",
+		"/bin/bash"
+	]
 
 if __name__ == "__main__":
 	"""
@@ -65,17 +76,23 @@ if __name__ == "__main__":
 
 	cwd = pathlib.Path(__file__).parent.resolve()
 
-	target = Target.STM32 if args.target.lower() == 'stm32' else Target.LINUX
-	folder = 'stm32-debug' if target == Target.STM32 else 'linux64-debug'
-	cmake_target = build_stm32() if target == Target.STM32 else []
-	docker = build_in_docker(target) if args.container else []
+	target = Target.STM32 if args.target.lower() == 'stm32' else Target.GDB if args.target.lower() == 'gdb' else Target.LINUX
 
-	steps = build_system_cmd(folder)
-	steps = docker + steps + cmake_target
-	print(" ".join(steps))
-	result = subprocess.run(steps)
+	if target == Target.GDB:
+		steps = build_gdb()
+		print(" ".join(steps))
+		result = subprocess.run(steps)
+	else:
+		folder = 'stm32-debug' if target == Target.STM32 else 'linux64-debug'
+		cmake_target = build_stm32() if target == Target.STM32 else []
+		docker = build_in_docker(target) if args.container else []
 
-	steps = build_project_cmd(folder)
-	steps = docker + steps
-	print(" ".join(steps))
-	result = subprocess.run(steps)
+		steps = build_system_cmd(folder)
+		steps = docker + steps + cmake_target
+		print(" ".join(steps))
+		result = subprocess.run(steps)
+
+		steps = build_project_cmd(folder)
+		steps = docker + steps
+		print(" ".join(steps))
+		result = subprocess.run(steps)
