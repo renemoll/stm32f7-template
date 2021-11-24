@@ -9,11 +9,5 @@ target_link_libraries(recorder_test
 	gtest_main
 )
 
-set_target_properties(recorder_test
-	PROPERTIES
-		C_CLANG_TIDY ""
-		CXX_CLANG_TIDY ""
-)
-
 include(GoogleTest)
 gtest_discover_tests(recorder_test)

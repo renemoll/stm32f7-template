@@ -1,0 +1,10 @@
+Checks:          '-*,bugprone-*,clang-analyzer-*,cppcoreguidelines-*,google-*,misc-*,modernize-*,performance-*,readability-*,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-modernize-use-trailing-return-type,-cppcoreguidelines-owning-memory'
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(?!.*build).*'
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
+CheckOptions:
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '2'
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           '2'
