@@ -16,7 +16,7 @@ protected:
 class Demo : public DemoInterface
 {
 public:
-    Demo(uint32_t period)
+    explicit Demo(uint32_t period)
         : m_period(period)
     {}
 
