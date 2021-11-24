@@ -19,9 +19,12 @@ if (CMAKE_CROSSCOMPILING)
 			cxx_relaxed_constexpr
 			cxx_std_20
 	)
-	# bob_configure_target(stm32f7_system) #TODO
+	bob_configure_target(stm32f7_system)
 	target_compile_options(stm32f7_system
 		PRIVATE
-			$<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+			$<$<AND:$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Wno-volatile>
+			$<$<AND:$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Wno-useless-cast>
+			-Wno-unused-parameter
+			$<$<COMPILE_LANGUAGE:CXX>:-Wno-old-style-cast>
 	)
 endif()
