@@ -41,6 +41,7 @@ def build_system_cmd(folder, target):
 		"-B", "build/{}".format(folder),
 		"-S", ".",
 		"-DCMAKE_BUILD_TYPE=Debug"
+		# "-DCMAKE_BUILD_TYPE=Release"
 		# "–warn-uninitialized"
 		# "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 	]

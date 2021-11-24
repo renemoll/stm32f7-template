@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cinttypes>
 
+#include "stm32f7xx.h"
 #include "clock.h"
 
 extern uint32_t __data_dest_start__;

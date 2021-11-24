@@ -15,6 +15,7 @@ function(bob_configure_options target)
 			PRIVATE
 				$<$<BOOL:${USE_EXCEPTIONS}>:-fexceptions>
 				$<$<NOT:$<BOOL:${USE_EXCEPTIONS}>>:-fno-exceptions>
+				$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<NOT:$<BOOL:${USE_EXCEPTIONS}>>>:-fno-use-cxa-atexit>
 		)
 
 		target_compile_options(${target}

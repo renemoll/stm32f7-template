@@ -8,6 +8,10 @@ target_include_directories(recorder_lib
 	PRIVATE
 		${PROJECT_BINARY_DIR}
 )
+target_compile_features(recorder_lib
+	PUBLIC
+		cxx_std_20
+)
 bob_configure_target(recorder_lib)
 
 if (CMAKE_CROSSCOMPILING)
@@ -28,17 +32,14 @@ if (CMAKE_CROSSCOMPILING)
 		PUBLIC
 			${PROJECT_BINARY_DIR}
 	)
+	bob_configure_target(recorder_app)
+	bob_firmware_image(recorder_app)
 	target_compile_options(recorder_app
 		PRIVATE
 			# STM32 HAL code does not comply with my coding style, so removing a number of checks.
 			$<$<AND:$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Wno-volatile>
+			$<$<AND:$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Wno-useless-cast>
 			-Wno-unused-parameter
+			$<$<COMPILE_LANGUAGE:CXX>:-Wno-old-style-cast>
 	)
-	target_compile_features(recorder_app
-		PUBLIC
-			cxx_std_20
-	)
-
-	bob_configure_target(recorder_app)
-	bob_firmware_image(recorder_app)
 endif()
