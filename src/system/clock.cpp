@@ -95,7 +95,7 @@ void configurePll()
  */
 void configureSystick()
 {
-	const auto ticks = (SystemCoreClock / 1000U) - 1;
+	const auto ticks = (SystemCoreClock / 1000000U) - 1;
 	if (!SysTick_Config(ticks)) {
 		assert("Unable to configure SysTick");
 	}

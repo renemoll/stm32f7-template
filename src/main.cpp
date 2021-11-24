@@ -7,13 +7,13 @@
 
 #include "demo.h"
 
-Demo g_demo(500);
+Demo g_demo(500000);
 
 void initGpio()
 {
 	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 
-	LL_GPIO_InitTypeDef init;
+	LL_GPIO_InitTypeDef init = {};
 	LL_GPIO_StructInit(&init);
 	init.Pin = LL_GPIO_PIN_7;
 	init.Mode = LL_GPIO_MODE_OUTPUT;
