@@ -15,7 +15,6 @@ if (CMAKE_CROSSCOMPILING)
 
 	add_executable(recorder_app
 		${stm32cubef7_SOURCE_DIR}/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_gpio.c
-		${stm32cubef7_SOURCE_DIR}/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_utils.c
 		build_id.cpp
 		main.cpp
 	)

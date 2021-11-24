@@ -1,13 +1,13 @@
 
 #include "config.h"
+
 #include <stm32f7xx.h>
 #include <stm32f7xx_ll_bus.h>
-#include <stm32f7xx_ll_cortex.h>
 #include <stm32f7xx_ll_gpio.h>
-#include <stm32f7xx_ll_utils.h>
+
 #include "demo.h"
 
-Demo g_demo(100);
+Demo g_demo(500);
 
 void initGpio()
 {
@@ -26,10 +26,6 @@ void initGpio()
  */
 int main()
 {
-	SystemCoreClockUpdate();
-	LL_Init1msTick(SystemCoreClock);
-	LL_SYSTICK_EnableIT();
-
 	initGpio();
 
 	while(true) {

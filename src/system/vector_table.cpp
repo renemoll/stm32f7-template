@@ -2,7 +2,7 @@
 #include <cinttypes>
 #include <type_traits>
 
-// Ensure the handler function names doe not get mangled.
+// Ensure the handler function names do not get mangled.
 extern "C"
 {
 

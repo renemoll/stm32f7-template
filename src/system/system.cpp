@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cinttypes>
 
+#include "clock.h"
+
 extern uint32_t __data_dest_start__;
 extern uint32_t __data_dest_end__;
 extern uint32_t __data_src__;
@@ -64,6 +66,9 @@ void __initialize_platform()
 	SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET;
 #endif
 */
+
+	// Other (determine where to place this...)
+	// LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DTCMRAM);
 }
 
 void __prepare_environment()
@@ -82,6 +87,8 @@ void __prepare_environment()
 
 void __start()
 {
+	configureClockDomain();
+	
 	/*
 	 * Call to main
 	 * Handle return from main

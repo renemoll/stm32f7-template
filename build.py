@@ -1,27 +1,57 @@
+"""
+
+Build my application and tests
+* build for host (Linux/Windows)
+* build for target
+
+Options:
+- containerized
+- type (debug/release)
+
+Open issues:
+- enter gdb
+- run test-cases
+
+
+idea:
+* rename build to bob
+* introduce subcommands:
+  * bob build
+  * bob debug
+  * bob test
+"""
 import argparse
 import enum
+import logging
 import subprocess
 import pathlib
 
 
 class Target(enum.Enum):
-	LINUX = 1
-	STM32 = 2
-	GDB = 3
+	Linux = 1
+	Stm32 = 2
+	Gdb = 3
+	Windows = 4
 
 	def __str__(self):
 		return self.name.lower()
 
-
-def build_system_cmd(folder):
-	return ["cmake",
+def build_system_cmd(folder, target):
+	cmd = ["cmake",
 		"-B", "build/{}".format(folder),
 		"-S", ".",
-		"-G", "Ninja",
 		"-DCMAKE_BUILD_TYPE=Debug"
 		# "–warn-uninitialized"
 		# "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 	]
+
+	if target in (Target.Linux, Target.Stm32):
+		cmd += [
+			"-G", "Ninja",
+		]
+
+	return cmd
+
 
 def build_project_cmd(folder):
 	return ["cmake", "--build", "build/{}".format(folder)]
@@ -29,12 +59,12 @@ def build_project_cmd(folder):
 def build_stm32():
 	return ["-DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-stm32f767.cmake"]
 
-def build_in_docker(target):
+def build_in_docker(target, cwd):
 	"""
 	Todo:
 	- container depends on target.
 	"""
-	if target == Target.STM32:
+	if target == Target.Stm32:
 		return ["docker",
 			"run",
 			"--rm",
@@ -48,6 +78,11 @@ def build_in_docker(target):
 			"renemoll/builder_clang"]
 
 def build_gdb():
+	"""
+	Todo:
+	- actually enter gdb
+	- lldb?
+	"""
 	return [
 		"docker",
 		"run",
@@ -57,6 +92,57 @@ def build_gdb():
 		"renemoll/builder_arm_gcc",
 		"/bin/bash"
 	]
+
+
+def bob(args):
+	cwd = pathlib.Path(__file__).parent.resolve()
+	logging.debug("Determined working directory: %s", cwd)
+
+	def determine_target(name):
+		"""
+		- in case no target is defined, do not specify a generator to use the system's default. Attempt to detect? (or should I solve with CMake, which may know this stuff)
+		"""
+		try:
+			key = name.lower().capitalize()
+			return Target[key]
+		except:
+			return Target.Linux
+
+	target = determine_target(args.target)
+	logging.debug("Determined target: %s", target)
+
+	def determine_output_folder(target):
+		"""
+		Todo:
+		- support build config
+		"""
+		lookup = {
+			Target.Stm32: 'stm32-debug',
+			Target.Linux: 'linux64-debug',
+			Target.Windows: 'win64-debug'
+		}
+		return lookup[target]
+
+	if target == Target.Gdb:
+		steps = build_gdb()
+		print(" ".join(steps))
+		result = subprocess.run(steps)
+	else:
+		folder = determine_output_folder(target)
+		logging.debug("Determined output folder: %s", folder)
+
+		cmake_target = build_stm32() if target == Target.Stm32 else []
+		docker = build_in_docker(target, cwd) if args.container else []
+
+		steps = build_system_cmd(folder, target)
+		steps = docker + steps + cmake_target
+		print(" ".join(steps))
+		result = subprocess.run(steps)
+
+		steps = build_project_cmd(folder)
+		steps = docker + steps
+		print(" ".join(steps))
+		result = subprocess.run(steps)
 
 if __name__ == "__main__":
 	"""
@@ -68,31 +154,17 @@ if __name__ == "__main__":
 	- de-couple clang-tidy from Clang build?
 	  	$ cmake -G Ninja -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 		$ clang-tidy-11 -format-style=file -header-filter=. -p build
+	- parallel build jobs
 	"""
+	logging.basicConfig(
+		level=logging.DEBUG,
+		format="%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s: %(message)s",
+		datefmt='%Y.%m.%d %H:%M:%S'
+	)
+
 	parser = argparse.ArgumentParser(description='Bob, the build system (builder).')
-	parser.add_argument('target', type=str, help='the target to build for (host/stm32)')
+	parser.add_argument('target', type=str, help='the target to build for (linux/windows/stm32)')
 	parser.add_argument('--container', dest='container', action='store_const', const=True, default=False, help='build inside a Docker container')
 	args = parser.parse_args()
 
-	cwd = pathlib.Path(__file__).parent.resolve()
-
-	target = Target.STM32 if args.target.lower() == 'stm32' else Target.GDB if args.target.lower() == 'gdb' else Target.LINUX
-
-	if target == Target.GDB:
-		steps = build_gdb()
-		print(" ".join(steps))
-		result = subprocess.run(steps)
-	else:
-		folder = 'stm32-debug' if target == Target.STM32 else 'linux64-debug'
-		cmake_target = build_stm32() if target == Target.STM32 else []
-		docker = build_in_docker(target) if args.container else []
-
-		steps = build_system_cmd(folder)
-		steps = docker + steps + cmake_target
-		print(" ".join(steps))
-		result = subprocess.run(steps)
-
-		steps = build_project_cmd(folder)
-		steps = docker + steps
-		print(" ".join(steps))
-		result = subprocess.run(steps)
+	bob(args)

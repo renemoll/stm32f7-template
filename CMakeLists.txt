@@ -14,7 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 configure_file(cmake/config.h.in config.h)
 
-
 add_subdirectory(src)
 
 if (NOT ${CMAKE_CROSSCOMPILING})

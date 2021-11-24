@@ -31,7 +31,7 @@ add_compile_options(
 	# --specs=nano.specs			# newlib nano.
 	-ffunction-sections				# Place each function into it's own section.
 	-fdata-sections					# Place each data element into it's own section.
-	$<$<CONFIG:DEBUG>:-gdwarf>		# Generate debug information in DWARF format.
+	$<$<CONFIG:DEBUG>:-gdwarf-5>	# Generate debug information in DWARF format.
 )
 
 add_link_options(
