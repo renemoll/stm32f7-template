@@ -29,6 +29,7 @@ import enum
 import logging
 import pathlib
 import subprocess
+import time
 
 import docopt
 
@@ -57,6 +58,21 @@ class BuildTarget(enum.Enum):
 
 	def __str__(self):
 		return self.name.lower()
+
+
+class ExecutionTimer:
+	def __init__(self):
+		self._start = None
+		self.duration = None
+
+	def __enter__(self):
+		self._start = time.perf_counter()
+		return self
+
+	def __exit__(self, exc_type, exc_value, exc_traceback):
+		stop = time.perf_counter()
+		self.duration = stop - self._start
+		return False
 
 
 def determine_command(args):
@@ -212,6 +228,7 @@ def bob_test(options):
 	pass
 
 
+
 def bob(command, options):
 	logging.info("Command: %s, options: %s", command, options)
 
@@ -229,8 +246,9 @@ def bob(command, options):
 	logging.debug("Processing %d tasks", len(tasks))
 	for task in tasks:
 		logging.debug(" ".join(task))
-		result = subprocess.run(task)
-		logging.debug("Result: %s", result)
+		with ExecutionTimer() as timer:
+			result = subprocess.run(task)
+		logging.debug("Result: %s in %f seconds", result, timer.duration)
 
 
 if __name__ == "__main__":
