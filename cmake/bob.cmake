@@ -93,3 +93,15 @@ function(bob_configure_target target)
 			RELWITHDEBINFO_POSTFIX "rd"
 	)
 endfunction()
+
+function(bob_configure_test target)
+	bob_configure_target(${target})
+
+	set_target_properties(${target}
+		PROPERTIES
+			C_CLANG_TIDY ""
+			CXX_CLANG_TIDY ""
+			C_CPPCHECK ""
+			CXX_CPPCHECK ""
+	)
+endfunction()

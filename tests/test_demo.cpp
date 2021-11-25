@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "demo.h"
 
 TEST(DemoTest, Init) {
