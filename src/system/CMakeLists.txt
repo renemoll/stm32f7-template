@@ -1,5 +1,5 @@
 
-if (CMAKE_CROSSCOMPILING)
+if (${CMAKE_CROSSCOMPILING})
 	# Create an "object" library to preserve the weak symbols used for IRQ handlers.
 	add_library(stm32f7_system OBJECT
 		${stm32cubef7_SOURCE_DIR}/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_utils.c
@@ -26,5 +26,6 @@ if (CMAKE_CROSSCOMPILING)
 			$<$<AND:$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Wno-useless-cast>
 			-Wno-unused-parameter
 			$<$<COMPILE_LANGUAGE:CXX>:-Wno-old-style-cast>
+			-Wno-pedantic
 	)
 endif()

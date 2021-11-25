@@ -1,52 +1,149 @@
-"""
+"""The builder, Bob the builder.
 
-Build my application and tests
-* build for host (Linux/Windows)
-* build for target
+Usage:
+	build.py build [<target>] [--no-container] [(debug|release)]
+	build.py debug [<target>]
+	build.py test
+	build.py -h | --help
+	build.py --version
+
+Possible commands:
+	build: build the project for the a target.
+	debug: enter the debugger.
+	test: (build and) execute the unit-tests.
+
+Target: optional command to select the target to build for.
+	Might be omited for automatic/native target selection, or
+	any of the following values:
+		- linux
+		- stm32
+		- native
 
 Options:
-- containerized
-- type (debug/release)
-
-Open issues:
-- enter gdb
-- run test-cases
-
-
-idea:
-* rename build to bob
-* introduce subcommands:
-  * bob build
-  * bob debug
-  * bob test
+	-h --help		Show this screen.
+	--version		Show version.
+	---no-container	Do not use the appropriate container to build the target.
 """
-import argparse
+
 import enum
 import logging
-import subprocess
 import pathlib
+import subprocess
+
+import docopt
 
 
-class Target(enum.Enum):
-	Linux = 1
-	Stm32 = 2
-	Gdb = 3
-	Windows = 4
+class Command(enum.Enum):
+	Build = 1
+	Debug = 2
+	Test = 3
 
 	def __str__(self):
 		return self.name.lower()
 
-def build_system_cmd(folder, target):
+
+class BuildConfig(enum.Enum):
+	Release = 1
+	Debug = 2
+
+	def __str__(self):
+		return self.name.lower()
+
+
+class BuildTarget(enum.Enum):
+	Native = 1
+	Linux = 2
+	Stm32 = 3
+
+	def __str__(self):
+		return self.name.lower()
+
+
+def determine_command(args):
+	if args['build']:
+		return Command.Build
+	elif args['debug']:
+		return Command.Debug
+	elif args['test']:
+		return Command.Test
+
+	raise ValueError("Unsupported command")
+
+
+def determine_build_config(args):
+	if args['release']:
+		return BuildConfig.Release
+	elif args['debug']:
+		return BuildConfig.Debug
+
+	logging.warning("No build config selected, defaulting to release build config")
+	return BuildConfig.Release
+
+
+def determine_build_target(args):
+	try:
+		target = args['<target>'].lower()
+		if target == 'stm32':
+			return BuildTarget.Stm32
+		elif target == 'linux':
+			return BuildTarget.Linux
+		return BuildTarget.Native
+	except:
+		return BuildTarget.Native
+
+
+def determine_options(args):
+	return {
+		'build' : {
+			'config': determine_build_config(arguments),
+			'target': determine_build_target(arguments),
+		},
+		'use-container': not args['--no-container']
+	}
+
+
+def determine_output_folder(options):
+	lookup = {
+		BuildTarget.Stm32: 'stm32-',
+		BuildTarget.Linux: 'linux64-',
+		BuildTarget.Native: 'native-',
+	}
+	return lookup[options['target']] + str(options['config']).lower()
+
+
+def container_command(target, cwd):
+	if target == BuildTarget.Native:
+		return []
+	elif target == BuildTarget.Stm32:
+		return ["docker",
+			"run",
+			"--rm",
+			"-v", "{}:/work/".format(cwd),
+			"renemoll/builder_arm_gcc"]
+	elif target == BuildTarget.Linux:
+		return ["docker",
+			"run",
+			"--rm",
+			"-v", "{}:/work/".format(cwd),
+			"renemoll/builder_clang"]
+
+	raise ValueError("Unsupported container requested: '%s'", str(target))
+
+
+def build_stm32():
+	return ["-DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-stm32f767.cmake"]
+
+
+def build_system_command(options, output_folder):
 	cmd = ["cmake",
-		"-B", "build/{}".format(folder),
+		"-B", "build/{}".format(output_folder),
 		"-S", ".",
-		"-DCMAKE_BUILD_TYPE=Debug"
-		# "-DCMAKE_BUILD_TYPE=Release"
+		"-DCMAKE_BUILD_TYPE={}".format(str(options['build']['config']))
 		# "–warn-uninitialized"
 		# "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 	]
 
-	if target in (Target.Linux, Target.Stm32):
+	if options['build']['target'] in (BuildTarget.Linux, BuildTarget.Stm32):
 		cmd += [
 			"-G", "Ninja",
 		]
@@ -54,118 +151,96 @@ def build_system_cmd(folder, target):
 	return cmd
 
 
-def build_project_cmd(folder):
-	return ["cmake", "--build", "build/{}".format(folder)]
+def build_project_command(output_folder):
+	return ["cmake", "--build", "build/{}".format(output_folder)]
 
-def build_stm32():
-	return ["-DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-stm32f767.cmake"]
 
-def build_in_docker(target, cwd):
-	"""
-	Todo:
-	- container depends on target.
-	"""
-	if target == Target.Stm32:
-		return ["docker",
-			"run",
-			"--rm",
-			"-v", "{}:/work/".format(cwd),
-			"renemoll/builder_arm_gcc"]
-	else:
-		return ["docker",
-			"run",
-			"--rm",
-			"-v", "{}:/work/".format(cwd),
-			"renemoll/builder_clang"]
+def bob_build(options, cwd):
+	output_folder = determine_output_folder(options['build'])
+	logging.debug("Determined output folder: %s", output_folder)
 
-def build_gdb():
+	def generate_build_env():
+		steps = []
+		if options['use-container']:
+			steps += container_command(options['build']['target'], cwd)
+
+		steps += build_system_command(options, output_folder)
+
+		if options['build']['target'] == BuildTarget.Stm32:
+			steps += build_stm32()
+
+		return steps
+
+	def build_project():
+		steps = []
+
+		if options['use-container']:
+			steps += container_command(options['build']['target'], cwd)
+
+		steps += build_project_command(output_folder)
+
+		return steps
+
+	return [
+		generate_build_env(),
+		build_project()
+	]
+
+
+def bob_debug(options, cwd):
 	"""
 	Todo:
 	- actually enter gdb
 	- lldb?
+	- make container optional
 	"""
-	return [
-		"docker",
-		"run",
-		"--rm",
-		"-it",
-		"-v", "{}:/work/".format(cwd),
-		"renemoll/builder_arm_gcc",
-		"/bin/bash"
-	]
+	def build_gdb():
+		return [
+			"docker",
+			"run",
+			"--rm",
+			"-it",
+			"-v", "{}:/work/".format(cwd),
+			"renemoll/builder_arm_gcc",
+			"/bin/bash"
+		]
+
+	return [build_gdb()]
 
 
-def bob(args):
+def bob_test(options):
+	pass
+
+
+def bob(command, options):
+	logging.info("Command: %s, options: %s", command, options)
+
 	cwd = pathlib.Path(__file__).parent.resolve()
 	logging.debug("Determined working directory: %s", cwd)
 
-	def determine_target(name):
-		"""
-		- in case no target is defined, do not specify a generator to use the system's default. Attempt to detect? (or should I solve with CMake, which may know this stuff)
-		"""
-		try:
-			key = name.lower().capitalize()
-			return Target[key]
-		except:
-			return Target.Linux
+	tasks = []
+	if command == Command.Build:
+		tasks += bob_build(options, cwd)
+	if command == Command.Debug:
+		tasks += bob_debug(options, cwd)
+	if command == Command.Test:
+		tasks += bob_test(options)
 
-	target = determine_target(args.target)
-	logging.debug("Determined target: %s", target)
+	logging.debug("Processing %d tasks", len(tasks))
+	for task in tasks:
+		logging.debug(" ".join(task))
+		result = subprocess.run(task)
+		logging.debug("Result: %s", result)
 
-	def determine_output_folder(target):
-		"""
-		Todo:
-		- support build config
-		"""
-		lookup = {
-			Target.Stm32: 'stm32-debug',
-			Target.Linux: 'linux64-debug',
-			Target.Windows: 'win64-debug'
-		}
-		return lookup[target]
-
-	if target == Target.Gdb:
-		steps = build_gdb()
-		print(" ".join(steps))
-		result = subprocess.run(steps)
-	else:
-		folder = determine_output_folder(target)
-		logging.debug("Determined output folder: %s", folder)
-
-		cmake_target = build_stm32() if target == Target.Stm32 else []
-		docker = build_in_docker(target, cwd) if args.container else []
-
-		steps = build_system_cmd(folder, target)
-		steps = docker + steps + cmake_target
-		print(" ".join(steps))
-		result = subprocess.run(steps)
-
-		steps = build_project_cmd(folder)
-		steps = docker + steps
-		print(" ".join(steps))
-		result = subprocess.run(steps)
 
 if __name__ == "__main__":
-	"""
-	Todo:
-	- build folders?
-	- Add ninja? (-G Ninja, what is the impact/use?)
-	- clean option (cmake --build build/... --target clean)
-	- build type (-DCMAKE_BUILD_TYPE=DEBUG/RELEASE, --config Debug)
-	- de-couple clang-tidy from Clang build?
-	  	$ cmake -G Ninja -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-		$ clang-tidy-11 -format-style=file -header-filter=. -p build
-	- parallel build jobs
-	"""
 	logging.basicConfig(
 		level=logging.DEBUG,
 		format="%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s: %(message)s",
 		datefmt='%Y.%m.%d %H:%M:%S'
 	)
 
-	parser = argparse.ArgumentParser(description='Bob, the build system (builder).')
-	parser.add_argument('target', type=str, help='the target to build for (linux/windows/stm32)')
-	parser.add_argument('--container', dest='container', action='store_const', const=True, default=False, help='build inside a Docker container')
-	args = parser.parse_args()
-
-	bob(args)
+	arguments = docopt.docopt(__doc__, version='Bob 1.0')
+	command = determine_command(arguments)
+	options = determine_options(arguments)
+	bob(command, options)

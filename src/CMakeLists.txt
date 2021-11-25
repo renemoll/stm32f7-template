@@ -14,7 +14,7 @@ target_compile_features(recorder_lib
 )
 bob_configure_target(recorder_lib)
 
-if (CMAKE_CROSSCOMPILING)
+if (${CMAKE_CROSSCOMPILING})
 	add_subdirectory(system)
 
 	add_executable(recorder_app

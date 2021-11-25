@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(nucleo_data_recorder VERSION 1.0 LANGUAGES ASM C CXX)
+project(nucleo_data_recorder VERSION 1.0 LANGUAGES C CXX ASM)
 
 find_package(Python3 COMPONENTS Interpreter)
 
@@ -19,8 +19,3 @@ add_subdirectory(src)
 if (NOT ${CMAKE_CROSSCOMPILING})
 	add_subdirectory(tests)
 endif()
-
-# Todo:
-# - clang format
-# - Position independent code?
-# - include-what-you-use / LINK_WHAT_YOU_USE?
