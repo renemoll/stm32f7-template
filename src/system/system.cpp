@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <cinttypes>
 
-#include "stm32f7xx.h"
 #include "clock.h"
+#include "stm32f7xx.h"
 
 extern uint32_t __data_dest_start__;
 extern uint32_t __data_dest_end__;
@@ -42,7 +42,7 @@ void table_call(InitFunction* start, InitFunction* end)
 {
 	std::for_each(start, end, [](const InitFunction f) { f(); });
 }
-}
+} // namespace
 
 /*
  * Enable caches
@@ -59,14 +59,14 @@ void __initialize_platform()
 
 	// Enable FPU when the compiler is configured to use it.
 #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-	SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));
+	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
 #endif
 
-/*
-#if defined(USER_VECT_TAB_ADDRESS)
-	SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET;
-#endif
-*/
+	/*
+	#if defined(USER_VECT_TAB_ADDRESS)
+		SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET;
+	#endif
+	*/
 
 	// Other (determine where to place this...)
 	// LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DTCMRAM);
@@ -89,7 +89,7 @@ void __prepare_environment()
 void __start()
 {
 	configureClockDomain();
-	
+
 	/*
 	 * Call to main
 	 * Handle return from main

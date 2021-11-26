@@ -3,6 +3,7 @@
 Usage:
 	build.py build [<target>] [--no-container] [(debug|release)]
 	build.py debug [<target>]
+	build.py format
 	build.py test
 	build.py -h | --help
 	build.py --version
@@ -10,6 +11,7 @@ Usage:
 Possible commands:
 	build: build the project for the a target.
 	debug: enter the debugger.
+	format: apply the code format. 
 	test: (build and) execute the unit-tests.
 
 Target: optional command to select the target to build for.
@@ -37,6 +39,7 @@ import docopt
 class Command(enum.Enum):
 	Build = 1
 	Debug = 2
+	Format = 4
 	Test = 3
 
 	def __str__(self):
@@ -82,6 +85,8 @@ def determine_command(args):
 		return Command.Debug
 	elif args['test']:
 		return Command.Test
+	elif args['format']:
+		return Command.Format
 
 	raise ValueError("Unsupported command")
 
@@ -156,7 +161,6 @@ def build_system_command(options, output_folder):
 		"-S", ".",
 		"-DCMAKE_BUILD_TYPE={}".format(str(options['build']['config']))
 		# "–warn-uninitialized"
-		# "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 	]
 
 	if options['build']['target'] in (BuildTarget.Linux, BuildTarget.Stm32):
@@ -228,6 +232,27 @@ def bob_test(options):
 	pass
 
 
+def bob_format(options, cwd):
+	folders = ['src', 'include']
+	filetypes = ['*.c', '*.h', '*.cpp', '*.hpp']
+
+	files = []
+	for f in folders:
+		base = cwd / f
+		for type in filetypes:
+			files += base.rglob(type)
+
+	steps = []
+	for file in files:
+		steps.append(container_command(BuildTarget.Linux, cwd) + [
+			"clang-format",
+			"-style=file",
+			"-i",
+			"-fallback-style=none",
+			str(pathlib.PurePosixPath(file.relative_to(cwd)))
+		])
+	return steps
+
 
 def bob(command, options):
 	logging.info("Command: %s, options: %s", command, options)
@@ -242,6 +267,8 @@ def bob(command, options):
 		tasks += bob_debug(options, cwd)
 	if command == Command.Test:
 		tasks += bob_test(options)
+	if command == Command.Format:
+		tasks += bob_format(options, cwd)
 
 	logging.debug("Processing %d tasks", len(tasks))
 	for task in tasks:

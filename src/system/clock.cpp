@@ -3,16 +3,16 @@
 #include <cassert>
 
 #include <stm32f7xx_ll_bus.h>
-#include <stm32f7xx_ll_rcc.h>
 #include <stm32f7xx_ll_pwr.h>
+#include <stm32f7xx_ll_rcc.h>
 #include <stm32f7xx_ll_utils.h>
 
 //! \todo LL API
 uint32_t SystemCoreClock = 16e0;
 const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
-static constexpr const uint32_t HseFrequency = 8e6;					//!\todo Board property
-static constexpr const uint32_t HseBypass = LL_UTILS_HSEBYPASS_ON;	//!\todo Board property
+static constexpr const uint32_t HseFrequency = 8e6;				   //!\todo Board property
+static constexpr const uint32_t HseBypass = LL_UTILS_HSEBYPASS_ON; //!\todo Board property
 static constexpr const uint32_t PllOutputFrequency = 216e6;
 
 namespace
@@ -35,7 +35,7 @@ void configureRegulator()
 
 	// following check only works when the PLL is on..
 	// while (LL_PWR_IsActiveFlag_VOS() && LL_PWR_GetRegulVoltageScaling() == powerscale) {
-		//!\todo Add a timeout
+	//!\todo Add a timeout
 	// }
 
 	if (PllOutputFrequency >= 180) {
@@ -62,14 +62,14 @@ void configureRegulator()
  */
 void configurePll()
 {
-	auto pllConfig = [](){
+	auto pllConfig = []() {
 		LL_UTILS_PLLInitTypeDef config = {};
 		config.PLLM = LL_RCC_PLLM_DIV_4;
 		config.PLLN = 216;
 		config.PLLP = LL_RCC_PLLP_DIV_2;
 		return config;
 	}();
-	auto clkConfig = [](){
+	auto clkConfig = []() {
 		LL_UTILS_ClkInitTypeDef config = {};
 		config.AHBCLKDivider = LL_RCC_SYSCLK_DIV_1;
 		config.APB1CLKDivider = LL_RCC_APB1_DIV_4;
@@ -81,8 +81,7 @@ void configurePll()
 		HseFrequency,
 		HseBypass,
 		&pllConfig,
-		&clkConfig
-	);
+		&clkConfig);
 
 	if (result != SUCCESS) {
 		assert("Unable to configure the clock domain");

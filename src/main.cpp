@@ -28,7 +28,7 @@ int main()
 {
 	initGpio();
 
-	while(true) {
+	while (true) {
 		if (g_demo.periodElapsed()) {
 			LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_7);
 		}
