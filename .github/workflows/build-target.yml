@@ -20,4 +20,7 @@ jobs:
           python-version: '3.x'
 
       - name: Call build.py
-        run: python build.py build stm32
+        uses: docker://renemoll/builder_arm_gcc:latest
+        with:
+          entrypoint: /usr/bin/env
+          args: python build.py build stm32

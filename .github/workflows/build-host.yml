@@ -20,5 +20,7 @@ jobs:
           python-version: '3.x'
 
       - name: Call build.py
-        run: python build.py build linux
-
+        uses: docker://renemoll/builder_clang:latest
+        with:
+          entrypoint: /usr/bin/env
+          args: python build.py build linux
