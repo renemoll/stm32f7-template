@@ -1,12 +1,6 @@
 name: Build for host
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  workflow_dispatch:
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
@@ -22,5 +16,4 @@ jobs:
       - name: Call build.py
         uses: docker://renemoll/builder_clang:latest
         with:
-          entrypoint: /usr/bin/env
-          args: python build.py build linux
+          args: python3 build.py build linux --no-container
