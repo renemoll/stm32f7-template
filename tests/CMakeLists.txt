@@ -1,7 +1,6 @@
 enable_testing()
 
 add_executable(recorder_test
-	test_compiler_status.cpp
 	test_demo.cpp
 )
 target_link_libraries(recorder_test
